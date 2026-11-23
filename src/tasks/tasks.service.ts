@@ -2,11 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Task, TaskDocument } from './schemas/task.schema';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectModel(Task.name) private readonly taskModel: Model<TaskDocument>,
+    private readonly usersService: UsersService,
   ) {}
 
   async findAll(): Promise<Task[]> {
@@ -19,5 +21,10 @@ export class TasksService {
       throw new NotFoundException(`Tarea con ID ${id} no encontrada`);
     }
     return task;
+  }
+
+  async create(payload: Task): Promise<Task> {
+    await this.usersService.findById(payload.userId);
+    return this.taskModel.create(payload);
   }
 }
